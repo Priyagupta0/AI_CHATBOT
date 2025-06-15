@@ -54,6 +54,3 @@ MIT License. Feel free to use, modify, and distribute with credit.
 💼 LinkedIn: [My Profile](www.linkedin.com/in/priya-gupta-325b67290)
 
 🐱 GitHub: [@Priyagupta0](https://github.com/Priyagupta0)
-
-```
----
