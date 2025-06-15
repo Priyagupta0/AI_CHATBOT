@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Priya Gupta - AI Mentor</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1f2937;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #4b5563;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+      }
+
+      /* Style to make textarea grow with content */
+      textarea {
+        field-sizing: content;
+        min-height: 50px;
+        max-height: 200px;
+      }
+
+      /* Light mode styles */
+      .light-mode {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f3f4f6;
+        --text-primary: #111827;
+        --text-secondary: #4b5563;
+        --border-color: #e5e7eb;
+        --message-bg-user: #3b82f6;
+        --message-bg-ai: #e5e7eb;
+        --message-text-user: #ffffff;
+        --message-text-ai: #111827;
+        --input-bg: #ffffff;
+      }
+
+      /* Dark mode styles (default) */
+      .dark-mode {
+        --bg-primary: #111827;
+        --bg-secondary: #1f2937;
+        --text-primary: #f9fafb;
+        --text-secondary: #9ca3af;
+        --border-color: #374151;
+        --message-bg-user: #3b82f6;
+        --message-bg-ai: #374151;
+        --message-text-user: #ffffff;
+        --message-text-ai: #f9fafb;
+        --input-bg: #1f2937;
+      }
+
+      body {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      .sidebar {
+        background-color: var(--bg-secondary);
+      }
+
+      .chat-area {
+        background-color: var(--bg-primary);
+      }
+
+      .input-area {
+        background-color: var(--bg-secondary);
+        border-color: var(--border-color);
+      }
+
+      .message-user {
+        background-color: var(--message-bg-user);
+        color: var(--message-text-user);
+      }
+
+      .message-ai {
+        background-color: var(--message-bg-ai);
+        color: var(--message-text-ai);
+      }
+
+      .input-field {
+        background-color: var(--input-bg);
+        color: var(--text-primary);
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed;
+          z-index: 50;
+          left: -100%;
+          transition: left 0.3s;
+        }
+
+        .sidebar.active {
+          left: 0;
+        }
+
+        .mobile-menu-btn {
+          display: block;
+        }
+
+        .header-content {
+          padding-left: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="dark-mode font-sans flex flex-col h-screen">
+    <!-- Header with dark/light mode toggle -->
+    <header
+      class="flex items-center justify-between p-4 border-b border-gray-700 fixed top-0 w-full z-10 bg-[var(--bg-primary)]"
+    >
+      <div class="flex items-center space-x-4 header-content">
+        <div class="relative">
+          <img
+            class="w-12 h-12 rounded-full object-cover"
+            src="image.jpg"
+            alt="Priya Gupta AI"
+          />
+          <span
+            class="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-400 border-2 border-gray-800"
+          ></span>
+        </div>
+        <div>
+          <h2 class="font-bold text-lg">Priya Gupta AI</h2>
+          <p class="text-xs text-green-400">Online</p>
+        </div>
+      </div>
+
+      <!-- Dark/Light mode toggle -->
+      <div class="flex items-center space-x-2">
+        <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-700">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Chat Area -->
+    <main class="flex-1 flex flex-col pt-[72px] pb-[120px]">
+      <!-- Chat messages container -->
+      <div id="chat-container" class="flex-1 p-4 overflow-y-auto">
+        <!-- Initial Greeting from AI -->
+        <div class="flex items-start gap-3 mb-6">
+          <div
+            class="message-ai p-4 rounded-lg max-w-2xl border-l border-1 text-left"
+          >
+            <p class="font-bold text-blue-400 mb-1">Priya Gupta AI</p>
+            <p class="text-left">
+              Hello dosto, kaise ho? Main hoon Priya Gupta, Aapki AI mentor.
+              Chaliye, maut ka khel shuru karte hain!
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+    <!-- Input area -->
+    <div
+      class="input-area p-4 border-t fixed bottom-0 w-full z-10 bg-[var(--bg-secondary)]"
+    >
+      <form id="chat-form" class="flex flex-col md:flex-row gap-3">
+        <div class="flex-1 relative w-full">
+          <textarea
+            id="prompt-input"
+            class="input-field w-full rounded-lg p-3 outline-none ring-2 ring-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            placeholder="Chat with Priya..."
+            rows="1"
+          ></textarea>
+          <button
+            id="clear-btn"
+            type="button"
+            class="absolute right-2 bottom-[18px] text-gray-400 hover:text-gray-600 hidden"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="flex gap-2 w-full md:w-auto justify-end">
+          <button
+            id="send-button"
+            type="submit"
+            class="h-[40px] w-[40px] bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-lg flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <i class="fas fa-paper-plane"></i>
+          </button>
+          <button
+            id="tts-btn"
+            type="button"
+            class="h-[40px] w-[40px] bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg flex items-center justify-center"
+            title="Read last response"
+          >
+            <i class="fas fa-volume-up"></i>
+          </button>
+          <button
+            id="voice-btn"
+            class="h-[40px] w-[40px] bg-red-600 hover:bg-red-700 text-white font-bold p-3 rounded-lg flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <i class="fas fa-microphone"></i>
+          </button>
+        </div>
+      </form>
+
+      <p class="text-xs text-gray-400 mt-2 text-center">
+        Press Enter to send, Shift+Enter for new line
+      </p>
+    </div>
+
+    <script>
+      // DOM Elements
+      const chatContainer = document.getElementById("chat-container");
+      const chatForm = document.getElementById("chat-form");
+      const promptInput = document.getElementById("prompt-input");
+      const sendButton = document.getElementById("send-button");
+      const clearBtn = document.getElementById("clear-btn");
+      const voiceBtn = document.getElementById("voice-btn");
+      const ttsBtn = document.getElementById("tts-btn");
+      const themeToggle = document.getElementById("theme-toggle");
+      const sidebar = document.querySelector("aside");
+      const sidebarCloseBtn = document.querySelector(".sidebar-close-btn");
+
+      const GEMINI_API_KEY = "AIzaSyDKPvqE6sxFHfur0FJzig7m4h8SkuB2W0w"; // <-- PUT YOUR NEW KEY HERE
+
+      // Best practice: Use the latest recommended model
+      const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+
+      // Store the conversation history
+      let chatHistory = [];
+      let isListening = false;
+      let recognition = null;
+      let lastAIResponse = "";
+      let speechSynthesis = window.speechSynthesis;
+
+      // System instruction to guide the AI's behavior
+      const systemInstructionText = `You are Priya Gupta, a helpful and friendly AI assistant. 
+      You speak in a warm, conversational style in Hinglish (a mix of Hindi and English). 
+      Keep your responses concise, helpful, and engaging. 
+      Use emojis occasionally to make the conversation more lively.`;
+
+      // Initialize the app
+      function init() {
+        // Check for speech synthesis support
+        if (!speechSynthesis) {
+          ttsBtn.disabled = true;
+          ttsBtn.title = "Text-to-speech not supported";
+        }
+
+        // Set up event listeners
+        setupEventListeners();
+
+        // Check preferred color scheme
+        if (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: light)").matches
+        ) {
+          document.body.classList.add("light-mode");
+          document.body.classList.remove("dark-mode");
+          themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        }
+      }
+
+      // Set up all event listeners
+      function setupEventListeners() {
+        // Form submission
+        chatForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          handleSendMessage();
+        });
+
+        // Enter key (but allow Shift+Enter for new lines)
+        promptInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+          }
+        });
+
+        // Input field changes
+        promptInput.addEventListener("input", () => {
+          adjustTextareaHeight();
+          clearBtn.style.display = promptInput.value ? "block" : "none";
+        });
+
+        // Clear button
+        clearBtn.addEventListener("click", () => {
+          promptInput.value = "";
+          clearBtn.style.display = "none";
+          adjustTextareaHeight();
+          promptInput.focus();
+        });
+
+        // Voice recognition button
+        voiceBtn.addEventListener("click", toggleVoiceRecognition);
+
+        // Text-to-speech button
+        ttsBtn.addEventListener("click", readLastResponse);
+
+        // Theme toggle
+        themeToggle.addEventListener("click", toggleTheme);
+      }
+
+      // Adjust textarea height based on content
+      function adjustTextareaHeight() {
+        promptInput.style.height = "auto";
+        promptInput.style.height = promptInput.scrollHeight + "px";
+      }
+
+      // Toggle between dark and light mode
+      function toggleTheme() {
+        if (document.body.classList.contains("dark-mode")) {
+          document.body.classList.remove("dark-mode");
+          document.body.classList.add("light-mode");
+          themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        } else {
+          document.body.classList.remove("light-mode");
+          document.body.classList.add("dark-mode");
+          themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+      }
+
+      // Toggle voice recognition
+      function toggleVoiceRecognition() {
+        if (!isListening) {
+          startVoiceRecognition();
+        } else {
+          stopVoiceRecognition();
+        }
+      }
+
+      // Start voice recognition
+      function startVoiceRecognition() {
+        const SpeechRecognition =
+          window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+          addMessageToChat(
+            "model",
+            "Voice recognition is not supported in your browser. Try Chrome or Edge."
+          );
+          return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-US";
+
+        recognition.onstart = () => {
+          isListening = true;
+          voiceBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+          voiceBtn.classList.add("bg-red-500");
+          addMessageToChat("model", "Listening... Speak now!");
+        };
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          promptInput.value = transcript;
+          adjustTextareaHeight();
+          clearBtn.style.display = "block";
+          handleSendMessage();
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Speech recognition error", event.error);
+          addMessageToChat("model", `Voice recognition error: ${event.error}`);
+          stopVoiceRecognition();
+        };
+
+        recognition.onend = () => {
+          stopVoiceRecognition();
+        };
+
+        recognition.start();
+      }
+
+      // Stop voice recognition
+      function stopVoiceRecognition() {
+        if (recognition) {
+          recognition.stop();
+        }
+        isListening = false;
+        voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        voiceBtn.classList.remove("bg-red-500");
+      }
+
+      let indianVoice = null;
+
+      // Load available voices
+      function loadVoices() {
+        return new Promise((resolve) => {
+          const voices = speechSynthesis.getVoices();
+          if (voices.length) return resolve(voices);
+
+          speechSynthesis.onvoiceschanged = () => {
+            resolve(speechSynthesis.getVoices());
+          };
+        });
+      }
+
+      async function readLastResponse() {
+        if (!lastAIResponse) {
+          alert("No response to read yet.");
+          return;
+        }
+
+        if (speechSynthesis.speaking) {
+          speechSynthesis.cancel();
+          return;
+        }
+
+        const voices = await loadVoices();
+        console.log(
+          "Available voices:",
+          voices.map((v) => `${v.name} (${v.lang})`)
+        );
+
+        // 1. Try Google UK English Male
+        let selectedVoice = voices.find(
+          (v) => v.name === "Google UK English Male"
+        );
+
+        // 2. Try any en-GB voice (British English)
+        if (!selectedVoice) {
+          selectedVoice = voices.find((v) => v.lang === "en-GB");
+        }
+
+        // 3. Try Indian English voice
+        if (!selectedVoice) {
+          selectedVoice = voices.find((v) => v.lang === "en-IN");
+        }
+
+        // 4. Fallback to first English voice
+        if (!selectedVoice) {
+          selectedVoice = voices.find((v) => v.lang.startsWith("en"));
+        }
+
+        // 5. If still no voice found, exit
+        if (!selectedVoice) {
+          alert("No English voice available on your browser.");
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(lastAIResponse);
+        utterance.voice = selectedVoice;
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        const ttsBtn = document.getElementById("ttsBtn");
+        if (ttsBtn) ttsBtn.innerHTML = '<i class="fas fa-stop"></i>';
+
+        utterance.onend = () => {
+          if (ttsBtn) ttsBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+        };
+
+        speechSynthesis.speak(utterance);
+      }
+
+      // Function to add a message to the chat display
+      const addMessageToChat = (role, text) => {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "flex items-start gap-3 mb-6";
+
+        // For mobile, add smaller gap
+        if (window.innerWidth < 768) {
+          messageDiv.className = "flex items-start gap-2 mb-4";
+        }
+
+        let messageContent = "";
+        if (role === "user") {
+          messageDiv.classList.add("justify-end", "items-center");
+          messageContent = `
+                <div class="flex items-center gap-2">
+                  <div class="message-user p-4 rounded-lg max-w-2xl border-r border-1">
+                    <p class="text-left">${text}</p>
+                  </div>
+                  <img class="w-8 h-8 rounded-full object-cover" src="image.jpg" alt="You" hidden/>
+                </div>
+            `;
+        } else {
+          // model
+          lastAIResponse = text; // Store the last AI response for TTS
+          messageContent = `
+                <div class="flex items-center gap-2">
+                  <img 
+                    src="image.jpg" 
+                    alt="Priya Gupta AI" 
+                    class="w-8 h-8 rounded-full object-cover"
+                  />
+                  <div class="message-ai p-4 rounded-lg max-w-2xl border-l border-1">
+                    <p class="whitespace-pre-wrap text-left">${text}</p>
+                  </div>
+                </div>
+            `;
+        }
+
+        messageDiv.innerHTML = messageContent;
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      };
+
+      // Function to show a typing indicator
+      const showTypingIndicator = () => {
+        const typingDiv = document.createElement("div");
+        typingDiv.id = "typing-indicator";
+        typingDiv.className = "flex items-start gap-3 mb-6";
+        typingDiv.innerHTML = `
+            <img class="w-10 h-10 rounded-full" src="image.jpg" alt="AI Avatar">
+            <div class="message-ai p-4 rounded-lg">
+                <div class="flex items-center space-x-1">
+                    <span class="block w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0s;"></span>
+                    <span class="block w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></span>
+                    <span class="block w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></span>
+                </div>
+            </div>
+        `;
+        chatContainer.appendChild(typingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      };
+
+      // Function to remove the typing indicator
+      const removeTypingIndicator = () => {
+        const indicator = document.getElementById("typing-indicator");
+        if (indicator) {
+          indicator.remove();
+        }
+      };
+
+      // Main function to handle sending a message
+      const handleSendMessage = async () => {
+        const userPrompt = promptInput.value.trim();
+        if (!userPrompt) return;
+
+        if (GEMINI_API_KEY === "YOUR_NEW_GEMINI_API_KEY_HERE") {
+          addMessageToChat(
+            "model",
+            "Bhai, API key set karna bhul gaye kya? Please add your Gemini API key in the script to continue."
+          );
+          return;
+        }
+
+        // 1. Display user's message and clear input
+        addMessageToChat("user", userPrompt);
+        promptInput.value = "";
+        promptInput.style.height = "auto";
+        clearBtn.style.display = "none";
+        sendButton.disabled = true;
+
+        // 2. Add user message to history
+        chatHistory.push({
+          role: "user",
+          parts: [{ text: userPrompt }],
+        });
+
+        // 3. Show typing indicator
+        showTypingIndicator();
+
+        try {
+          const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              contents: chatHistory,
+              system_instruction: {
+                parts: [
+                  {
+                    text: systemInstructionText,
+                  },
+                ],
+              },
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+              errorData.error.message ||
+                `HTTP error! status: ${response.status}`
+            );
+          }
+
+          const data = await response.json();
+
+          // 5. Process the response
+          removeTypingIndicator();
+
+          if (data.candidates && data.candidates.length > 0) {
+            const aiResponse = data.candidates[0].content.parts[0].text;
+            addMessageToChat("model", aiResponse);
+            // Add AI response to history for context in next turn
+            chatHistory.push({
+              role: "model",
+              parts: [{ text: aiResponse }],
+            });
+          } else {
+            // Handle cases where the API returns no candidates
+            const blockReason =
+              data.promptFeedback?.blockReason || "an unknown reason";
+            addMessageToChat(
+              "model",
+              `Dost, I couldn't generate a response for that. It was blocked for ${blockReason}. Please try a different prompt.`
+            );
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          removeTypingIndicator();
+          addMessageToChat(
+            "model",
+            `Oops! Kuch gadbad ho gayi. Error: ${error.message}`
+          );
+        } finally {
+          sendButton.disabled = false;
+          promptInput.focus();
+        }
+      };
+
+      // Initialize the app when DOM is loaded
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>
